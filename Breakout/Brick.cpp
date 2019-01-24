@@ -11,14 +11,14 @@ Brick::Brick()
 	std::uniform_int_distribution<int> chanceDist(0, 9);
 	std::uniform_int_distribution<int> powerDist(1, 3);
 
-	int willItPower = chanceDist(ranDev);
+	int willItPower = chanceDist(brickRanDev);
 	//30% chance a brick will have a powerUp
 	if (willItPower >= 0 && willItPower <= 2)
 	{
 		hasPowerUp = true;
 
 		//Randomly pick which power the brick has
-		itsPower = powerDist(ranDev);
+		itsPower = powerDist(brickRanDev);
 
 		sf::RectangleShape::setFillColor(sf::Color::Red);
 	}

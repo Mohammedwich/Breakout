@@ -3,7 +3,7 @@
 #include <random>
 #include "PowerUp.h"
 
-static std::random_device ranDev;
+static std::random_device brickRanDev;
 enum Power { NONE = 0, MAGNETIC = 1, BOMB = 2, EXTRABALL = 3};
 
 
