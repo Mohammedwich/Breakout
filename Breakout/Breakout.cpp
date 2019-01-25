@@ -129,7 +129,16 @@ int main()
 	loseText.setOutlineThickness(5);
 	loseText.setOutlineColor(sf::Color::Black);
 	loseText.setPosition(210, 250);
-	loseText.setString("You Lose");
+	loseText.setString("You Lost @_@");
+	
+	sf::Text loseText;
+	loseText.setFont(sansation);
+	loseText.setCharacterSize(40);
+	loseText.setFillColor(sf::Color(193, 129, 112));
+	loseText.setOutlineThickness(5);
+	loseText.setOutlineColor(sf::Color::Black);
+	loseText.setPosition(210, 250);
+	loseText.setString("You Won (/^_^)/");
 
 	sf::Text playAgain;
 	playAgain.setFont(sansation);
@@ -255,20 +264,72 @@ int main()
 				
 				// Make ball deflect more to the left if it hits the left edge of the deflector
 				if ((energyBall.getPosition().x >= (deflectorPosition.x - deflectorWidth / 2)) &&
-					(energyBall.getPosition().x <= (deflectorPosition.x - deflectorWidth / 3)) )
+					(energyBall.getPosition().x <= (deflectorPosition.x - deflectorWidth / 4)) )
 				{
 					energyBall.setAngle(energyBall.getAngle() + std::_Pi/6);
 				}
 
 				// Make ball deflect more to the right if it hits the right edge of the deflector
 				if ((energyBall.getPosition().x <= (deflectorPosition.x + deflectorWidth / 2)) &&
-					(energyBall.getPosition().x >= (deflectorPosition.x + deflectorWidth / 3)))
+					(energyBall.getPosition().x >= (deflectorPosition.x + deflectorWidth / 4)))
 				{
 					energyBall.setAngle(energyBall.getAngle() - std::_Pi / 6);
 				}
 			}
 
+			//Ball breaking bricks
+			bool foundBrick = false;	//To stop iterating once we have the impacted brick. Should get reinitialized on false every time "Move the ball" block runs
+			for (auto brickIter = brickVector.begin(); brickIter != brickVector.end() && foundBrick == false; ++brickIter)
+			{
+				if ((*brickIter).isBroken() == false )
+				{
+					sf::FloatRect brickBound = (*brickIter).getGlobalBounds();
 
+					for (auto ballPointIter = energyBall.getEdgePoints().begin(); ballPointIter != energyBall.getEdgePoints().end(); ++ballPointIter)
+					{
+						if (brickBound.contains(*ballPointIter) )
+						{
+							(*brickIter).crush();
+							foundBrick = true;
+							
+							//Note: Brick origin is their top left corner, ball origin is its center
+							//ball ricochet off of top side
+							if ( (energyBall.getPosition().x >= (*brickIter).getPosition().x - energyBall.getRadius()) &&
+								 (energyBall.getPosition().x <= ((*brickIter).getPosition().x + (*brickIter).getSize().x + energyBall.getRadius()) ) &&
+								 (energyBall.getPosition().y <  (*brickIter).getPosition().y ) )
+							{
+								energyBall.setAngle(0 - energyBall.getAngle());
+							}
+
+							//ball ricochet off of bottom side
+							if ( (energyBall.getPosition().x >= (*brickIter).getPosition().x - energyBall.getRadius()) &&
+								 (energyBall.getPosition().x <= ((*brickIter).getPosition().x + (*brickIter).getSize().x + energyBall.getRadius())) &&
+								 (energyBall.getPosition().y > ((*brickIter).getPosition().y + (*brickIter).getSize().y)) )
+							{
+								energyBall.setAngle(0 - energyBall.getAngle());
+							}
+
+							//ball ricochet off of left side
+							if ( (energyBall.getPosition().y >= (*brickIter).getPosition().y - energyBall.getRadius()) &&
+								 (energyBall.getPosition().y <= ((*brickIter).getPosition().y + (*brickIter).getSize().y + energyBall.getRadius())) &&
+								 (energyBall.getPosition().x < (*brickIter).getPosition().x) )
+							{
+								energyBall.setAngle(std::_Pi - energyBall.getAngle());
+							}
+
+							//ball ricochet off of right side
+							if ( (energyBall.getPosition().y >= (*brickIter).getPosition().y - energyBall.getRadius()) &&
+								 (energyBall.getPosition().y <= ((*brickIter).getPosition().y + (*brickIter).getSize().y + energyBall.getRadius())) &&
+								 (energyBall.getPosition().x > ((*brickIter).getPosition().x + (*brickIter).getSize().x)) )
+							{
+								energyBall.setAngle(std::_Pi - energyBall.getAngle());
+							}
+
+							break;	//Break out of checking the rest of the ball points on this brick since it broke already
+						}
+					}
+				}
+			}
 
 		}
 		
