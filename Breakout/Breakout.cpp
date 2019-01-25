@@ -74,6 +74,8 @@ int main()
 	ballDeflector.setTextureRect(sf::IntRect(145, 180, 250, 200));
 	sf::Vector2f deflectorPosition(275.f, 577.f);	//Made to use with ball positioning
 	float deflectorWidth = 100;
+	float deflectorHight = 13;
+	float deflectorSpeed = 1*0.5;
 
 
 	// The bricks and their positions on the window
@@ -160,7 +162,6 @@ int main()
 				mainWindow.close();
 			}
 
-			//Move the ballDeflector
 			if (event.type == sf::Event::KeyPressed)
 			{
 				//Until the start screen is bypassed with enter, nothing will be controlled
@@ -187,7 +188,7 @@ int main()
 					}
 				}
 
-				// Controls
+				// Some Controls
 				if (paused == false && startScreen == false)
 				{
 					if ((event.key.code == sf::Keyboard::Up) && (energyBall.isStuck()))
@@ -215,35 +216,13 @@ int main()
 		}
 
 		
-		//Move deflector
-		if (gameLost == false && paused == false && startScreen == false)
-		{
-			if ((sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) && (borderLeftBound.intersects(ballDeflector.getGlobalBounds()) == false))
-			{
-				ballDeflector.move(-1, 0);
-				deflectorPosition.x -= 1;
-				if (energyBall.isStuck())
-				{
-					energyBall.move(-1, 0);
-				}
-			}
-
-			if ((sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) && (borderRightBound.intersects(ballDeflector.getGlobalBounds()) == false))
-			{
-				ballDeflector.move(1, 0);
-				deflectorPosition.x += 1;
-				if (energyBall.isStuck())
-				{
-					energyBall.move(1, 0);
-				}
-			}
-		}
 
 		//Moving the ball
 		if (!energyBall.isStuck() && gameLost == false && paused == false && startScreen == false)
 		{
 			energyBall.move(speed*(cos(energyBall.getAngle())), -speed*( sin(energyBall.getAngle())));
 
+			// If ball hits borders
 			if (borderLeftBound.contains((energyBall.getPosition().x - energyBall.getRadius()), energyBall.getPosition().y))
 			{
 				energyBall.setAngle(std::_Pi - energyBall.getAngle());
@@ -268,14 +247,55 @@ int main()
 			if ((energyBall.getPosition().x >= (deflectorPosition.x - deflectorWidth / 2)) &&
 				(energyBall.getPosition().x <= (deflectorPosition.x + deflectorWidth / 2)) &&
 				((energyBall.getPosition().y + energyBall.getRadius()) >= deflectorPosition.y) &&
+				((energyBall.getPosition().y + energyBall.getRadius()) <= deflectorPosition.y + deflectorHight) &&
 				(gameLost == false )													)
 			{
-				//play sound here
+				//add sound here
 				energyBall.setAngle(0 - energyBall.getAngle());
+				
+				// Make ball deflect more to the left if it hits the left edge of the deflector
+				if ((energyBall.getPosition().x >= (deflectorPosition.x - deflectorWidth / 2)) &&
+					(energyBall.getPosition().x <= (deflectorPosition.x - deflectorWidth / 3)) )
+				{
+					energyBall.setAngle(energyBall.getAngle() + std::_Pi/6);
+				}
+
+				// Make ball deflect more to the right if it hits the right edge of the deflector
+				if ((energyBall.getPosition().x <= (deflectorPosition.x + deflectorWidth / 2)) &&
+					(energyBall.getPosition().x >= (deflectorPosition.x + deflectorWidth / 3)))
+				{
+					energyBall.setAngle(energyBall.getAngle() - std::_Pi / 6);
+				}
 			}
+
+
 
 		}
 		
+
+		//Move deflector
+		if (gameLost == false && paused == false && startScreen == false)
+		{
+			if ((sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) && (borderLeftBound.intersects(ballDeflector.getGlobalBounds()) == false))
+			{
+				ballDeflector.move(-deflectorSpeed, 0);
+				deflectorPosition.x -= deflectorSpeed;
+				if (energyBall.isStuck())
+				{
+					energyBall.move(-deflectorSpeed, 0);
+				}
+			}
+
+			if ((sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) && (borderRightBound.intersects(ballDeflector.getGlobalBounds()) == false))
+			{
+				ballDeflector.move(deflectorSpeed, 0);
+				deflectorPosition.x += deflectorSpeed;
+				if (energyBall.isStuck())
+				{
+					energyBall.move(deflectorSpeed, 0);
+				}
+			}
+		}
 		
 
 		// Draw Start screen
