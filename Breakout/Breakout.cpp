@@ -88,9 +88,9 @@ int main()
 	}
 
 	//The ball
-	Ball meteor;
-	meteor.move(deflectorPosition.x, deflectorPosition.y - meteor.getRadius() - 1);//set initial position on top of deflector
-	float speed = meteor.getSpeed();
+	Ball energyBall;
+	energyBall.move(deflectorPosition.x, deflectorPosition.y - energyBall.getRadius() - 1);//set initial position on top of deflector
+	float speed = energyBall.getSpeed();
 
 	//Texts
 	sf::Font sansation;
@@ -190,29 +190,9 @@ int main()
 				// Controls
 				if (paused == false && startScreen == false)
 				{
-					if ((event.key.code == sf::Keyboard::Left) && (borderLeftBound.intersects(ballDeflector.getGlobalBounds()) == false))
+					if ((event.key.code == sf::Keyboard::Up) && (energyBall.isStuck()))
 					{
-						ballDeflector.move(-10, 0);
-						deflectorPosition.x -= 10;
-						if (meteor.isStuck())
-						{
-							meteor.move(-10, 0);
-						}
-					}
-
-					if ((event.key.code == sf::Keyboard::Right) && (borderRightBound.intersects(ballDeflector.getGlobalBounds()) == false))
-					{
-						ballDeflector.move(10, 0);
-						deflectorPosition.x += 10;
-						if (meteor.isStuck())
-						{
-							meteor.move(10, 0);
-						}
-					}
-
-					if ((event.key.code == sf::Keyboard::Up) && (meteor.isStuck()))
-					{
-						meteor.unStick();
+						energyBall.unStick();
 					}
 
 					if ((event.key.code == sf::Keyboard::P) && gameLost == true)
@@ -220,14 +200,14 @@ int main()
 						deflectorPosition = sf::Vector2f(275.f, 577.f);
 						ballDeflector.setPosition(0, 0);
 
-						meteor.setPosition(0, 0);
-						meteor.move(deflectorPosition.x, deflectorPosition.y - meteor.getRadius() - 1);
+						energyBall.setPosition(0, 0);
+						energyBall.move(deflectorPosition.x, deflectorPosition.y - energyBall.getRadius() - 1);
 						std::uniform_int_distribution<int> resetAngleDist(45, 135);
 						int randomAngle = resetAngleDist(ballRanDev);
-						meteor.setAngle(randomAngle * (2 * std::_Pi / 360));
+						energyBall.setAngle(randomAngle * (2 * std::_Pi / 360));
 
 						gameLost = false;
-						meteor.stick();
+						energyBall.stick();
 					}
 				}
 			}
@@ -235,39 +215,63 @@ int main()
 		}
 
 		
-		//Moving the ball
-		if (!meteor.isStuck() && gameLost == false && paused == false && startScreen == false)
+		//Move deflector
+		if (gameLost == false && paused == false && startScreen == false)
 		{
-			meteor.move(speed*(cos(meteor.getAngle())), -speed*( sin(meteor.getAngle())));
-
-			if (borderLeftBound.contains((meteor.getPosition().x - meteor.getRadius()), meteor.getPosition().y))
+			if ((sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) && (borderLeftBound.intersects(ballDeflector.getGlobalBounds()) == false))
 			{
-				meteor.setAngle(std::_Pi - meteor.getAngle());
+				ballDeflector.move(-1, 0);
+				deflectorPosition.x -= 1;
+				if (energyBall.isStuck())
+				{
+					energyBall.move(-1, 0);
+				}
 			}
 
-			if (borderRightBound.contains((meteor.getPosition().x + meteor.getRadius()), meteor.getPosition().y))
+			if ((sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) && (borderRightBound.intersects(ballDeflector.getGlobalBounds()) == false))
 			{
-				meteor.setAngle(std::_Pi - meteor.getAngle());
+				ballDeflector.move(1, 0);
+				deflectorPosition.x += 1;
+				if (energyBall.isStuck())
+				{
+					energyBall.move(1, 0);
+				}
+			}
+		}
+
+		//Moving the ball
+		if (!energyBall.isStuck() && gameLost == false && paused == false && startScreen == false)
+		{
+			energyBall.move(speed*(cos(energyBall.getAngle())), -speed*( sin(energyBall.getAngle())));
+
+			if (borderLeftBound.contains((energyBall.getPosition().x - energyBall.getRadius()), energyBall.getPosition().y))
+			{
+				energyBall.setAngle(std::_Pi - energyBall.getAngle());
 			}
 
-			if (borderUpBound.contains((meteor.getPosition().x), meteor.getPosition().y - meteor.getRadius()))
+			if (borderRightBound.contains((energyBall.getPosition().x + energyBall.getRadius()), energyBall.getPosition().y))
 			{
-				meteor.setAngle(0 - meteor.getAngle());
+				energyBall.setAngle(std::_Pi - energyBall.getAngle());
 			}
 
-			if (borderDownBound.contains((meteor.getPosition().x), meteor.getPosition().y + meteor.getRadius()))
+			if (borderUpBound.contains((energyBall.getPosition().x), energyBall.getPosition().y - energyBall.getRadius()))
+			{
+				energyBall.setAngle(0 - energyBall.getAngle());
+			}
+
+			if (borderDownBound.contains((energyBall.getPosition().x), energyBall.getPosition().y + energyBall.getRadius()))
 			{
 				gameLost = true;
 			}
 
 			//Ball bouncing from deflector
-			if ((meteor.getPosition().x >= (deflectorPosition.x - deflectorWidth / 2)) &&
-				(meteor.getPosition().x <= (deflectorPosition.x + deflectorWidth / 2)) &&
-				((meteor.getPosition().y + meteor.getRadius()) >= deflectorPosition.y) &&
+			if ((energyBall.getPosition().x >= (deflectorPosition.x - deflectorWidth / 2)) &&
+				(energyBall.getPosition().x <= (deflectorPosition.x + deflectorWidth / 2)) &&
+				((energyBall.getPosition().y + energyBall.getRadius()) >= deflectorPosition.y) &&
 				(gameLost == false )													)
 			{
 				//play sound here
-				meteor.setAngle(0 - meteor.getAngle());
+				energyBall.setAngle(0 - energyBall.getAngle());
 			}
 
 		}
@@ -302,7 +306,7 @@ int main()
 			}
 
 			mainWindow.draw(ballDeflector);
-			mainWindow.draw(meteor);
+			mainWindow.draw(energyBall);
 			mainWindow.display();
 		}
 
@@ -335,7 +339,7 @@ int main()
 			}
 
 			mainWindow.draw(ballDeflector);
-			mainWindow.draw(meteor);
+			mainWindow.draw(energyBall);
 			mainWindow.draw(pauseText);
 			mainWindow.display();
 		}
