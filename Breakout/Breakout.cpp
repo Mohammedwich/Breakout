@@ -129,17 +129,17 @@ int main()
 	loseText.setOutlineThickness(5);
 	loseText.setOutlineColor(sf::Color::Black);
 	loseText.setPosition(210, 250);
-	loseText.setString("You Lost @_@");
+	loseText.setString("You Lost");
 	
-	sf::Text loseText;
-	loseText.setFont(sansation);
-	loseText.setCharacterSize(40);
-	loseText.setFillColor(sf::Color(193, 129, 112));
-	loseText.setOutlineThickness(5);
-	loseText.setOutlineColor(sf::Color::Black);
-	loseText.setPosition(210, 250);
-	loseText.setString("You Won (/^_^)/");
-
+	sf::Text winText;
+	winText.setFont(sansation);
+	winText.setCharacterSize(40);
+	winText.setFillColor(sf::Color(193, 129, 112));
+	winText.setOutlineThickness(5);
+	winText.setOutlineColor(sf::Color::Black);
+	winText.setPosition(170, 250);
+	winText.setString("You Won (/^_^)/");
+	
 	sf::Text playAgain;
 	playAgain.setFont(sansation);
 	playAgain.setCharacterSize(20);
@@ -158,6 +158,7 @@ int main()
 	bool paused = false;	
 	bool pause_unpause_inhibitor = false;	//Used to prevent instant unpause after a pause in the Space event pause condition below.
 	bool gameLost = false;
+	bool gameWon = false;
 
 
 	while (mainWindow.isOpen())
@@ -184,15 +185,16 @@ int main()
 				{
 					if (event.key.code == sf::Keyboard::Space)
 					{
-						if (gameLost == false && paused == false)
+						if (gameLost == false && gameWon == false && paused == false)
 						{
 							paused = true;
 							pause_unpause_inhibitor = true;
 						}
-						if (gameLost == false && paused == true && pause_unpause_inhibitor == false)
+						if (gameLost == false && gameWon == false && paused == true && pause_unpause_inhibitor == false)
 						{
 							paused = false;
 						}
+
 						pause_unpause_inhibitor = false;
 					}
 				}
@@ -205,19 +207,21 @@ int main()
 						energyBall.unStick();
 					}
 
-					if ((event.key.code == sf::Keyboard::P) && gameLost == true)
+					// Reset stuff on new game
+					if ((event.key.code == sf::Keyboard::P) && ( gameLost == true || gameWon == true) )
 					{
-						deflectorPosition = sf::Vector2f(275.f, 577.f);
-						ballDeflector.setPosition(0, 0);
+						deflectorPosition = sf::Vector2f(275.f, 577.f);	//separate object that represents deflector position
+						ballDeflector.setPosition(0, 0);	//Its origin position
 
 						energyBall.setPosition(0, 0);
 						energyBall.move(deflectorPosition.x, deflectorPosition.y - energyBall.getRadius() - 1);
 						std::uniform_int_distribution<int> resetAngleDist(45, 135);
 						int randomAngle = resetAngleDist(ballRanDev);
 						energyBall.setAngle(randomAngle * (2 * std::_Pi / 360));
+						energyBall.stick();
 
 						gameLost = false;
-						energyBall.stick();
+						gameWon = false;
 					}
 				}
 			}
@@ -227,7 +231,7 @@ int main()
 		
 
 		//Moving the ball
-		if (!energyBall.isStuck() && gameLost == false && paused == false && startScreen == false)
+		if (!energyBall.isStuck() && gameLost == false && gameWon == false && paused == false && startScreen == false)
 		{
 			energyBall.move(speed*(cos(energyBall.getAngle())), -speed*( sin(energyBall.getAngle())));
 
@@ -276,7 +280,7 @@ int main()
 					energyBall.setAngle(energyBall.getAngle() - std::_Pi / 6);
 				}
 			}
-
+			/*
 			//Ball breaking bricks
 			bool foundBrick = false;	//To stop iterating once we have the impacted brick. Should get reinitialized on false every time "Move the ball" block runs
 			for (auto brickIter = brickVector.begin(); brickIter != brickVector.end() && foundBrick == false; ++brickIter)
@@ -289,6 +293,7 @@ int main()
 					{
 						if (brickBound.contains(*ballPointIter) )
 						{
+							//add brick crush sound here
 							(*brickIter).crush();
 							foundBrick = true;
 							
@@ -330,12 +335,12 @@ int main()
 					}
 				}
 			}
-
+			*/
 		}
 		
 
 		//Move deflector
-		if (gameLost == false && paused == false && startScreen == false)
+		if (gameLost == false && gameWon == false && paused == false && startScreen == false)
 		{
 			if ((sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) && (borderLeftBound.intersects(ballDeflector.getGlobalBounds()) == false))
 			{
@@ -360,7 +365,7 @@ int main()
 		
 
 		// Draw Start screen
-		if (gameLost == false && paused == false && startScreen == true)
+		if (gameLost == false && gameWon == false && paused == false && startScreen == true)
 		{
 			mainWindow.clear(sf::Color::Cyan);
 			mainWindow.draw(background);
@@ -369,7 +374,7 @@ int main()
 		}
 
 		// Draw gameplay
-		if (gameLost == false && paused == false && startScreen == false)
+		if (gameLost == false && gameWon == false && paused == false && startScreen == false)
 		{
 			mainWindow.clear(sf::Color::Cyan);
 			mainWindow.draw(background);
@@ -392,7 +397,7 @@ int main()
 		}
 
 		// Draw lose screen
-		if (gameLost == true && paused == false && startScreen == false)
+		if (gameLost == true && gameWon == false && paused == false && startScreen == false)
 		{
 			mainWindow.clear(sf::Color::Cyan);
 			mainWindow.draw(background);
@@ -401,8 +406,18 @@ int main()
 			mainWindow.display();
 		}
 
+		// Draw win screen
+		if (gameLost == false && gameWon == true && paused == false && startScreen == false)
+		{
+			mainWindow.clear(sf::Color::Cyan);
+			mainWindow.draw(background);
+			mainWindow.draw(winText);
+			mainWindow.draw(playAgain);
+			mainWindow.display();
+		}
+
 		// Draw pause screen
-		if (gameLost == false && paused == true && startScreen == false)
+		if (gameLost == false && gameWon == false && paused == true && startScreen == false)
 		{
 			mainWindow.clear(sf::Color::Cyan);
 			mainWindow.draw(background);
