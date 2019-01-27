@@ -75,7 +75,7 @@ int main()
 	sf::Vector2f deflectorPosition(275.f, 577.f);	//Made to use with ball positioning
 	float deflectorWidth = 100;
 	float deflectorHight = 13;
-	float deflectorSpeed = 1*0.5;
+	float deflectorSpeed = 0.5;
 
 
 	// The bricks and their positions on the window
@@ -149,21 +149,32 @@ int main()
 	playAgain.setPosition(200, 320);
 	playAgain.setString("Press 'P' to play again.");
 
-	//Time 
-	sf::Clock theClock;
-	sf::Time timePassed = theClock.getElapsedTime();
 
-	//Game conditions
+	//Game Variables
 	bool startScreen = true;	//Used to show instructions before starting game
 	bool paused = false;	
 	bool pause_unpause_inhibitor = false;	//Used to prevent instant unpause after a pause in the Space event pause condition below.
 	bool gameLost = false;
 	bool gameWon = false;
+	int brokenBricks = 0;
+	float initialBallSpeed = energyBall.getSpeed();
+
+	//Time 
+	sf::Clock theClock;
+	
 
 
 	while (mainWindow.isOpen())
 	{
 		sf::Event event;
+		if (energyBall.isStuck())
+		{
+			deflectorSpeed = 0.5;
+		}
+		else
+		{
+			deflectorSpeed = 0.8;
+		}
 
 		while (mainWindow.pollEvent(event))
 		{
@@ -220,8 +231,20 @@ int main()
 						energyBall.setAngle(randomAngle * (2 * std::_Pi / 360));
 						energyBall.stick();
 
+						brickVector.clear();
+						brickVector.resize(50);
+
+						for (int row = 0; row < 5; ++row)
+						{
+							for (int column = 0; column < 10; ++column)
+							{
+								brickVector[(row * 10) + column].setPosition(sf::Vector2f((1 + column*55.f), (1 + row*19.f)));
+							}
+						}
+
 						gameLost = false;
 						gameWon = false;
+						brokenBricks = 0;
 					}
 				}
 			}
@@ -280,8 +303,13 @@ int main()
 					energyBall.setAngle(energyBall.getAngle() - std::_Pi / 6);
 				}
 			}
-			/*
+			
 			//Ball breaking bricks
+			if (brokenBricks == 50)
+			{
+				gameWon = true;
+			}
+
 			bool foundBrick = false;	//To stop iterating once we have the impacted brick. Should get reinitialized on false every time "Move the ball" block runs
 			for (auto brickIter = brickVector.begin(); brickIter != brickVector.end() && foundBrick == false; ++brickIter)
 			{
@@ -296,6 +324,9 @@ int main()
 							//add brick crush sound here
 							(*brickIter).crush();
 							foundBrick = true;
+							++brokenBricks;
+							float ballSpeedRate = brokenBricks * 0.05; //To adjust ball speed to account for faster looping with less bricks. 
+							energyBall.setSpeed(initialBallSpeed - ballSpeedRate);
 							
 							//Note: Brick origin is their top left corner, ball origin is its center
 							//ball ricochet off of top side
@@ -335,7 +366,7 @@ int main()
 					}
 				}
 			}
-			*/
+			
 		}
 		
 
