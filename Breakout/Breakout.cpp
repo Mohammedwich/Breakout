@@ -20,7 +20,7 @@ int main()
 	sf::ContextSettings context;
 	context.antialiasingLevel = 8;
 
-	sf::RenderWindow mainWindow(sf::VideoMode(550, 600), "Breakout", sf::Style::Default, context);
+	sf::RenderWindow mainWindow(sf::VideoMode(550, 600), "Breakout", sf::Style::Close | sf::Style::Titlebar, context);
 
 	sf::Texture galaxyTexture;
 	if (!galaxyTexture.loadFromFile("Galaxy.jpg"))
@@ -86,6 +86,7 @@ int main()
 		for (int column = 0; column < 10; ++column)
 		{
 			brickVector[(row * 10) + column].setPosition(sf::Vector2f( (1+ column*55.f), (1 + row*19.f) ));
+			brickVector[(row * 10) + column].syncPowerUpPosition();
 		}
 	}
 
@@ -304,6 +305,7 @@ int main()
 				}
 			}
 			
+
 			//Ball breaking bricks
 			if (brokenBricks == 50)
 			{
@@ -418,7 +420,19 @@ int main()
 				}
 				else
 				{
-					theBrick.drawItsPowerUp(mainWindow);
+					if (theBrick.whichPower() != 0)
+					{
+						theBrick.drawItsPowerUp(mainWindow);
+
+						if (theBrick.getPowerUpBounds().intersects(ballDeflector.getGlobalBounds()))
+						{
+							//add powerup to deflector
+							//add powerUp gained sound
+
+							theBrick.setPowerUpPosition(theBrick.getPowerUpPosition(), 0, 20);
+						}
+
+					}
 				}
 			}
 

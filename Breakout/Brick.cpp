@@ -25,8 +25,8 @@ Brick::Brick()
 
 
 	//Setting up the powerUp within
-	itsPowerUp.setPosition(getPosition());
-	itsPowerUp.move(4, 0);
+	//itsPowerUp.setPosition((*this).getPosition());
+	//itsPowerUp.move(4, 0);
 	itsPowerUp.setPower(itsPower);
 
 	switch (itsPower)
@@ -79,4 +79,31 @@ int Brick::whichPower()
 void Brick::drawItsPowerUp(sf::RenderWindow & theWindow)
 {
 	itsPowerUp.draw(theWindow);
+}
+
+sf::Vector2f Brick::getPowerUpPosition()
+{
+	return itsPowerUp.getPosition();
+}
+
+sf::FloatRect Brick::getPowerUpBounds()
+{
+	return itsPowerUp.getGlobalBounds();
+}
+
+void Brick::setPowerUpPosition(sf::Vector2f position)
+{
+	itsPowerUp.setPosition(position);
+}
+
+void Brick::setPowerUpPosition(sf::Vector2f position, float xMove, float yMove)
+{
+	itsPowerUp.setPosition(position);
+	itsPowerUp.move(xMove, yMove);
+}
+
+void Brick::syncPowerUpPosition()
+{
+	itsPowerUp.setPosition((*this).getPosition());
+	itsPowerUp.move(15, 0);
 }

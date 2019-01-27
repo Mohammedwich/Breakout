@@ -18,6 +18,12 @@ public:
 	int whichPower();
 	void drawItsPowerUp(sf::RenderWindow & theWindow);
 
+	sf::Vector2f getPowerUpPosition();
+	sf::FloatRect getPowerUpBounds();
+	void setPowerUpPosition(sf::Vector2f);
+	void setPowerUpPosition(sf::Vector2f, float xMove, float yMove);
+	void syncPowerUpPosition();
+
 private:
 	bool hasPowerUp = false;
 	int itsPower = 0;	
