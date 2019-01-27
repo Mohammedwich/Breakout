@@ -7,7 +7,7 @@ Ball::Ball() : edgePoints(8, sf::Vector2f(0.f, 0.f))
 {
 	std::uniform_int_distribution<int> startingAngleDist(45, 135);	//Launch angle from deflector
 	
-	itsSpeed = 0.40f;
+	itsSpeed = 0.7f;
 	stuck = true;
 	int randomAngle = startingAngleDist(ballRanDev);
 	itsAngle = randomAngle * (2 * std::_Pi / 360);
