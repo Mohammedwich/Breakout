@@ -73,9 +73,13 @@ int main()
 	ballDeflector.setTexture(&galaxyTexture);
 	ballDeflector.setTextureRect(sf::IntRect(145, 180, 250, 200));
 	sf::Vector2f deflectorPosition(275.f, 577.f);	//Made to use with ball positioning
+
 	float deflectorWidth = 100;
 	float deflectorHight = 13;
 	float deflectorSpeed = 0.5;
+	
+	bool deflectorMagnetized = false;
+	int bombAmmo = 0;
 
 
 	// The bricks and their positions on the window
@@ -219,6 +223,12 @@ int main()
 						energyBall.unStick();
 					}
 
+					if (event.key.code == sf::Keyboard::Num1 && bombAmmo > 0)
+					{
+						--bombAmmo;
+
+					}
+
 					// Reset stuff on new game
 					if ((event.key.code == sf::Keyboard::P) && ( gameLost == true || gameWon == true) )
 					{
@@ -246,6 +256,9 @@ int main()
 						gameLost = false;
 						gameWon = false;
 						brokenBricks = 0;
+						deflectorMagnetized = false;
+						bombAmmo = 0;
+						// add single ball revert
 					}
 				}
 			}
@@ -284,7 +297,7 @@ int main()
 			if ((energyBall.getPosition().x >= (deflectorPosition.x - deflectorWidth / 2)) &&
 				(energyBall.getPosition().x <= (deflectorPosition.x + deflectorWidth / 2)) &&
 				((energyBall.getPosition().y + energyBall.getRadius()) >= deflectorPosition.y) &&
-				((energyBall.getPosition().y + energyBall.getRadius()) <= deflectorPosition.y + deflectorHight) &&
+				((energyBall.getPosition().y + energyBall.getRadius()) <= deflectorPosition.y + (0.75 * deflectorHight)) &&
 				(gameLost == false )													)
 			{
 				//add sound here
@@ -302,6 +315,12 @@ int main()
 					(energyBall.getPosition().x >= (deflectorPosition.x + deflectorWidth / 4)))
 				{
 					energyBall.setAngle(energyBall.getAngle() - std::_Pi / 6);
+				}
+
+				// If deflector has the magnet powerUp
+				if (deflectorMagnetized == true)
+				{
+					energyBall.stick();
 				}
 			}
 			
@@ -428,8 +447,27 @@ int main()
 						{
 							//add powerup to deflector
 							//add powerUp gained sound
+							switch (theBrick.whichPower())
+							{
+							case MAGNETIC: 
+								deflectorMagnetized = true;
+								ballDeflector.setFillColor(sf::Color(255, 0, 89));
+								break;
 
-							theBrick.setPowerUpPosition(theBrick.getPowerUpPosition(), 0, 20);
+							case BOMB: 
+								++bombAmmo;
+								break;
+
+							case EXTRABALL: 
+								//add ball
+								break;
+
+							default: 
+								cout << "powerUp consumption switch error." << endl;
+								break;
+							}
+
+							theBrick.setPowerUpPosition(theBrick.getPowerUpPosition(), 0, 20);	//Make powerUp disappear offscreen when absorbed
 						}
 
 					}
@@ -461,6 +499,8 @@ int main()
 			mainWindow.display();
 		}
 
+		// Seems this block may be unnecessary. Check for cleaning at the end.
+		/*
 		// Draw pause screen
 		if (gameLost == false && gameWon == false && paused == true && startScreen == false)
 		{
@@ -483,7 +523,7 @@ int main()
 			mainWindow.draw(energyBall);
 			mainWindow.draw(pauseText);
 			mainWindow.display();
-		}
+		}*/
 	}
 
 	

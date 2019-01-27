@@ -29,7 +29,7 @@ void PowerUp::setPosition(sf::Vector2f thePosition)
 
 void PowerUp::fallDown()
 {
-	sf::RectangleShape::move(0, 0.5);
+	sf::RectangleShape::move(0, 0.4);
 }
 
 void PowerUp::draw(sf::RenderWindow & theWindow)
