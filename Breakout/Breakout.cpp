@@ -17,6 +17,9 @@ using std::endl;
 
 int main()
 {
+
+	std::uniform_int_distribution<int> resetAngleDist(45, 135);	// Used for setting ball starter angles
+
 	sf::ContextSettings context;
 	context.antialiasingLevel = 8;
 
@@ -95,9 +98,9 @@ int main()
 	}
 
 	//The ball
-	Ball energyBall;
-	energyBall.move(deflectorPosition.x, deflectorPosition.y - energyBall.getRadius() - 1);//set initial position on top of deflector
-	float speed = energyBall.getSpeed();
+	std::vector<Ball> ballVector(1);
+	ballVector[0].move(deflectorPosition.x, deflectorPosition.y - ballVector[0].getRadius() - 1);//set initial position on top of deflector
+	float speed = ballVector[0].getSpeed();
 
 	//Texts
 	sf::Font sansation;
@@ -162,7 +165,8 @@ int main()
 	bool gameLost = false;
 	bool gameWon = false;
 	int brokenBricks = 0;
-	float initialBallSpeed = energyBall.getSpeed();
+	float initialBallSpeed = ballVector[0].getSpeed();
+	int numberOfBalls = 1;
 
 	//Time 
 	sf::Clock theClock;
@@ -172,13 +176,19 @@ int main()
 	while (mainWindow.isOpen())
 	{
 		sf::Event event;
-		if (energyBall.isStuck())
+		for (auto ballIter = ballVector.begin(); ballIter != ballVector.end(); ++ballIter)
 		{
-			deflectorSpeed = 0.5;
-		}
-		else
-		{
-			deflectorSpeed = 0.8;
+			if ((*ballIter).isDead() == false)
+			{
+				if ((*ballIter).isStuck())
+				{
+					deflectorSpeed = 0.5;
+				}
+				else
+				{
+					deflectorSpeed = 0.8;
+				}
+			}
 		}
 
 		while (mainWindow.pollEvent(event))
@@ -218,15 +228,24 @@ int main()
 				// Some Controls
 				if (paused == false && startScreen == false)
 				{
-					if ((event.key.code == sf::Keyboard::Up) && (energyBall.isStuck()))
+					if ((event.key.code == sf::Keyboard::Up) )
 					{
-						energyBall.unStick();
+						for (auto ballIter = ballVector.begin(); ballIter != ballVector.end(); ++ballIter)
+						{
+							if ((*ballIter).isDead() == false)
+							{
+								if ((*ballIter).isStuck())
+								{
+									(*ballIter).unStick();
+								}
+							}
+						}
 					}
 
 					if (event.key.code == sf::Keyboard::Num1 && bombAmmo > 0)
 					{
 						--bombAmmo;
-
+						// add shoot bomb
 					}
 
 					// Reset stuff on new game
@@ -234,13 +253,15 @@ int main()
 					{
 						deflectorPosition = sf::Vector2f(275.f, 577.f);	//separate object that represents deflector position
 						ballDeflector.setPosition(0, 0);	//Its origin position
+						ballDeflector.setFillColor(sf::Color::Yellow);
 
-						energyBall.setPosition(0, 0);
-						energyBall.move(deflectorPosition.x, deflectorPosition.y - energyBall.getRadius() - 1);
-						std::uniform_int_distribution<int> resetAngleDist(45, 135);
+						ballVector.clear();
+						ballVector.resize(1);
+						ballVector[0].setPosition(0, 0);
+						ballVector[0].move(deflectorPosition.x, deflectorPosition.y - ballVector[0].getRadius() - 1);
 						int randomAngle = resetAngleDist(ballRanDev);
-						energyBall.setAngle(randomAngle * (2 * std::_Pi / 360));
-						energyBall.stick();
+						ballVector[0].setAngle(randomAngle * (2 * std::_Pi / 360));
+						ballVector[0].stick();
 
 						brickVector.clear();
 						brickVector.resize(50);
@@ -250,6 +271,7 @@ int main()
 							for (int column = 0; column < 10; ++column)
 							{
 								brickVector[(row * 10) + column].setPosition(sf::Vector2f((1 + column*55.f), (1 + row*19.f)));
+								brickVector[(row * 10) + column].syncPowerUpPosition();
 							}
 						}
 
@@ -258,6 +280,7 @@ int main()
 						brokenBricks = 0;
 						deflectorMagnetized = false;
 						bombAmmo = 0;
+						numberOfBalls = 1;
 						// add single ball revert
 					}
 				}
@@ -268,126 +291,143 @@ int main()
 		
 
 		//Moving the ball
-		if (!energyBall.isStuck() && gameLost == false && gameWon == false && paused == false && startScreen == false)
+		for (auto ballIter = ballVector.begin(); ballIter != ballVector.end(); ++ballIter)
 		{
-			energyBall.move(speed*(cos(energyBall.getAngle())), -speed*( sin(energyBall.getAngle())));
-
-			// If ball hits borders
-			if (borderLeftBound.contains((energyBall.getPosition().x - energyBall.getRadius()), energyBall.getPosition().y))
+			if ((*ballIter).isDead() == false)
 			{
-				energyBall.setAngle(std::_Pi - energyBall.getAngle());
-			}
-
-			if (borderRightBound.contains((energyBall.getPosition().x + energyBall.getRadius()), energyBall.getPosition().y))
-			{
-				energyBall.setAngle(std::_Pi - energyBall.getAngle());
-			}
-
-			if (borderUpBound.contains((energyBall.getPosition().x), energyBall.getPosition().y - energyBall.getRadius()))
-			{
-				energyBall.setAngle(0 - energyBall.getAngle());
-			}
-
-			if (borderDownBound.contains((energyBall.getPosition().x), energyBall.getPosition().y + energyBall.getRadius()))
-			{
-				gameLost = true;
-			}
-
-			//Ball bouncing from deflector
-			if ((energyBall.getPosition().x >= (deflectorPosition.x - deflectorWidth / 2)) &&
-				(energyBall.getPosition().x <= (deflectorPosition.x + deflectorWidth / 2)) &&
-				((energyBall.getPosition().y + energyBall.getRadius()) >= deflectorPosition.y) &&
-				((energyBall.getPosition().y + energyBall.getRadius()) <= deflectorPosition.y + (0.75 * deflectorHight)) &&
-				(gameLost == false )													)
-			{
-				//add sound here
-				energyBall.setAngle(0 - energyBall.getAngle());
-				
-				// Make ball deflect more to the left if it hits the left edge of the deflector
-				if ((energyBall.getPosition().x >= (deflectorPosition.x - deflectorWidth / 2)) &&
-					(energyBall.getPosition().x <= (deflectorPosition.x - deflectorWidth / 4)) )
+				if (!(*ballIter).isStuck() && gameLost == false && gameWon == false && paused == false && startScreen == false)
 				{
-					energyBall.setAngle(energyBall.getAngle() + std::_Pi/6);
-				}
+					(*ballIter).move(speed*(cos((*ballIter).getAngle())), -speed*(sin((*ballIter).getAngle())));
 
-				// Make ball deflect more to the right if it hits the right edge of the deflector
-				if ((energyBall.getPosition().x <= (deflectorPosition.x + deflectorWidth / 2)) &&
-					(energyBall.getPosition().x >= (deflectorPosition.x + deflectorWidth / 4)))
-				{
-					energyBall.setAngle(energyBall.getAngle() - std::_Pi / 6);
-				}
-
-				// If deflector has the magnet powerUp
-				if (deflectorMagnetized == true)
-				{
-					energyBall.stick();
-				}
-			}
-			
-
-			//Ball breaking bricks
-			if (brokenBricks == 50)
-			{
-				gameWon = true;
-			}
-
-			bool foundBrick = false;	//To stop iterating once we have the impacted brick. Should get reinitialized on false every time "Move the ball" block runs
-			for (auto brickIter = brickVector.begin(); brickIter != brickVector.end() && foundBrick == false; ++brickIter)
-			{
-				if ((*brickIter).isBroken() == false )
-				{
-					sf::FloatRect brickBound = (*brickIter).getGlobalBounds();
-
-					for (auto ballPointIter = energyBall.getEdgePoints().begin(); ballPointIter != energyBall.getEdgePoints().end(); ++ballPointIter)
+					// If ball hits borders
+					if (borderLeftBound.contains(((*ballIter).getPosition().x - (*ballIter).getRadius()), (*ballIter).getPosition().y))
 					{
-						if (brickBound.contains(*ballPointIter) )
+						(*ballIter).setAngle(std::_Pi - (*ballIter).getAngle());
+					}
+
+					if (borderRightBound.contains(((*ballIter).getPosition().x + (*ballIter).getRadius()), (*ballIter).getPosition().y))
+					{
+						(*ballIter).setAngle(std::_Pi - (*ballIter).getAngle());
+					}
+
+					if (borderUpBound.contains(((*ballIter).getPosition().x), (*ballIter).getPosition().y - (*ballIter).getRadius()))
+					{
+						(*ballIter).setAngle(0 - (*ballIter).getAngle());
+					}
+
+					if (borderDownBound.contains(((*ballIter).getPosition().x), (*ballIter).getPosition().y + (*ballIter).getRadius()))
+					{
+						(*ballIter).kill();
+						(*ballIter).move(0, 20);
+						--numberOfBalls;
+
+						if (numberOfBalls == 0)
 						{
-							//add brick crush sound here
-							(*brickIter).crush();
-							foundBrick = true;
-							++brokenBricks;
-							float ballSpeedRate = brokenBricks * 0.05; //To adjust ball speed to account for faster looping with less bricks. 
-							energyBall.setSpeed(initialBallSpeed - ballSpeedRate);
-							
-							//Note: Brick origin is their top left corner, ball origin is its center
-							//ball ricochet off of top side
-							if ( (energyBall.getPosition().x >= (*brickIter).getPosition().x - energyBall.getRadius()) &&
-								 (energyBall.getPosition().x <= ((*brickIter).getPosition().x + (*brickIter).getSize().x + energyBall.getRadius()) ) &&
-								 (energyBall.getPosition().y <  (*brickIter).getPosition().y ) )
-							{
-								energyBall.setAngle(0 - energyBall.getAngle());
-							}
+							gameLost = true;
+						}
+					}
 
-							//ball ricochet off of bottom side
-							if ( (energyBall.getPosition().x >= (*brickIter).getPosition().x - energyBall.getRadius()) &&
-								 (energyBall.getPosition().x <= ((*brickIter).getPosition().x + (*brickIter).getSize().x + energyBall.getRadius())) &&
-								 (energyBall.getPosition().y > ((*brickIter).getPosition().y + (*brickIter).getSize().y)) )
-							{
-								energyBall.setAngle(0 - energyBall.getAngle());
-							}
+					//Ball bouncing from deflector
+					if (((*ballIter).getPosition().x >= (deflectorPosition.x - deflectorWidth / 2)) &&
+						((*ballIter).getPosition().x <= (deflectorPosition.x + deflectorWidth / 2)) &&
+						(((*ballIter).getPosition().y + (*ballIter).getRadius()) >= deflectorPosition.y) &&
+						(((*ballIter).getPosition().y + (*ballIter).getRadius()) <= deflectorPosition.y + (0.75 * deflectorHight)) &&
+						(gameLost == false))
+					{
+						//add sound here
+						(*ballIter).setAngle(0 - (*ballIter).getAngle());
 
-							//ball ricochet off of left side
-							if ( (energyBall.getPosition().y >= (*brickIter).getPosition().y - energyBall.getRadius()) &&
-								 (energyBall.getPosition().y <= ((*brickIter).getPosition().y + (*brickIter).getSize().y + energyBall.getRadius())) &&
-								 (energyBall.getPosition().x < (*brickIter).getPosition().x) )
-							{
-								energyBall.setAngle(std::_Pi - energyBall.getAngle());
-							}
+						// Make ball deflect more to the left if it hits the left edge of the deflector
+						if (((*ballIter).getPosition().x >= (deflectorPosition.x - deflectorWidth / 2)) &&
+							((*ballIter).getPosition().x <= (deflectorPosition.x - deflectorWidth / 4)))
+						{
+							(*ballIter).setAngle((*ballIter).getAngle() + std::_Pi / 6);
+						}
 
-							//ball ricochet off of right side
-							if ( (energyBall.getPosition().y >= (*brickIter).getPosition().y - energyBall.getRadius()) &&
-								 (energyBall.getPosition().y <= ((*brickIter).getPosition().y + (*brickIter).getSize().y + energyBall.getRadius())) &&
-								 (energyBall.getPosition().x > ((*brickIter).getPosition().x + (*brickIter).getSize().x)) )
-							{
-								energyBall.setAngle(std::_Pi - energyBall.getAngle());
-							}
+						// Make ball deflect more to the right if it hits the right edge of the deflector
+						if (((*ballIter).getPosition().x <= (deflectorPosition.x + deflectorWidth / 2)) &&
+							((*ballIter).getPosition().x >= (deflectorPosition.x + deflectorWidth / 4)))
+						{
+							(*ballIter).setAngle((*ballIter).getAngle() - std::_Pi / 6);
+						}
 
-							break;	//Break out of checking the rest of the ball points on this brick since it broke already
+						// If deflector has the magnet powerUp
+						if (deflectorMagnetized == true)
+						{
+							(*ballIter).stick();
+						}
+					}
+
+
+					//Ball breaking bricks
+					if (brokenBricks == 50)
+					{
+						gameWon = true;
+					}
+					for (auto ballIter = ballVector.begin(); ballIter != ballVector.end(); ++ballIter)
+					{
+						if ((*ballIter).isDead() == false)
+						{
+							bool foundBrick = false;	//To stop iterating once we have the impacted brick. Should get reinitialized on false every time "Move the ball" block runs
+							for (auto brickIter = brickVector.begin(); brickIter != brickVector.end() && foundBrick == false; ++brickIter)
+							{
+								if ((*brickIter).isBroken() == false)
+								{
+									sf::FloatRect brickBound = (*brickIter).getGlobalBounds();
+
+									for (auto ballPointIter = (*ballIter).getEdgePoints().begin(); ballPointIter != (*ballIter).getEdgePoints().end(); ++ballPointIter)
+									{
+										if (brickBound.contains(*ballPointIter))
+										{
+											//add brick crush sound here
+											(*brickIter).crush();
+											foundBrick = true;
+											++brokenBricks;
+											float ballSpeedRate = brokenBricks * 0.05; //To adjust ball speed to account for faster looping with less bricks. 
+											(*ballIter).setSpeed(initialBallSpeed - ballSpeedRate);
+
+											//Note: Brick origin is their top left corner, ball origin is its center
+											//ball ricochet off of top side
+											if (((*ballIter).getPosition().x >= (*brickIter).getPosition().x - (*ballIter).getRadius()) &&
+												((*ballIter).getPosition().x <= ((*brickIter).getPosition().x + (*brickIter).getSize().x + (*ballIter).getRadius())) &&
+												((*ballIter).getPosition().y < (*brickIter).getPosition().y))
+											{
+												(*ballIter).setAngle(0 - (*ballIter).getAngle());
+											}
+
+											//ball ricochet off of bottom side
+											if (((*ballIter).getPosition().x >= (*brickIter).getPosition().x - (*ballIter).getRadius()) &&
+												((*ballIter).getPosition().x <= ((*brickIter).getPosition().x + (*brickIter).getSize().x + (*ballIter).getRadius())) &&
+												((*ballIter).getPosition().y > ((*brickIter).getPosition().y + (*brickIter).getSize().y)))
+											{
+												(*ballIter).setAngle(0 - (*ballIter).getAngle());
+											}
+
+											//ball ricochet off of left side
+											if (((*ballIter).getPosition().y >= (*brickIter).getPosition().y - (*ballIter).getRadius()) &&
+												((*ballIter).getPosition().y <= ((*brickIter).getPosition().y + (*brickIter).getSize().y + (*ballIter).getRadius())) &&
+												((*ballIter).getPosition().x < (*brickIter).getPosition().x))
+											{
+												(*ballIter).setAngle(std::_Pi - (*ballIter).getAngle());
+											}
+
+											//ball ricochet off of right side
+											if (((*ballIter).getPosition().y >= (*brickIter).getPosition().y - (*ballIter).getRadius()) &&
+												((*ballIter).getPosition().y <= ((*brickIter).getPosition().y + (*brickIter).getSize().y + (*ballIter).getRadius())) &&
+												((*ballIter).getPosition().x > ((*brickIter).getPosition().x + (*brickIter).getSize().x)))
+											{
+												(*ballIter).setAngle(std::_Pi - (*ballIter).getAngle());
+											}
+
+											break;	//Break out of checking the rest of the ball points on this brick since it broke already
+										}
+									}
+								}
+							}
 						}
 					}
 				}
 			}
-			
 		}
 		
 
@@ -398,9 +438,15 @@ int main()
 			{
 				ballDeflector.move(-deflectorSpeed, 0);
 				deflectorPosition.x -= deflectorSpeed;
-				if (energyBall.isStuck())
+				for (auto ballIter = ballVector.begin(); ballIter != ballVector.end(); ++ballIter)
 				{
-					energyBall.move(-deflectorSpeed, 0);
+					if ((*ballIter).isDead() == false)
+					{
+						if ((*ballIter).isStuck())
+						{
+							(*ballIter).move(-deflectorSpeed, 0);
+						}
+					}
 				}
 			}
 
@@ -408,9 +454,15 @@ int main()
 			{
 				ballDeflector.move(deflectorSpeed, 0);
 				deflectorPosition.x += deflectorSpeed;
-				if (energyBall.isStuck())
+				for (auto ballIter = ballVector.begin(); ballIter != ballVector.end(); ++ballIter)
 				{
-					energyBall.move(deflectorSpeed, 0);
+					if ((*ballIter).isDead() == false)
+					{
+						if ((*ballIter).isStuck())
+						{
+							(*ballIter).move(deflectorSpeed, 0);
+						}
+					}
 				}
 			}
 		}
@@ -459,7 +511,13 @@ int main()
 								break;
 
 							case EXTRABALL: 
-								//add ball
+								ballVector.emplace_back();
+								++numberOfBalls;
+								(*(ballVector.end() - 1)).setPosition(0, 0);	// Set up the last ball made
+								(*(ballVector.end() - 1)).move(deflectorPosition.x, deflectorPosition.y - (*(ballVector.end() - 1)).getRadius() - 1);
+								(*(ballVector.end() - 1)).setAngle(resetAngleDist(ballRanDev) * (2 * std::_Pi / 360));
+								(*(ballVector.end() - 1)).unStick();
+								//add speed adjustment
 								break;
 
 							default: 
@@ -475,7 +533,13 @@ int main()
 			}
 
 			mainWindow.draw(ballDeflector);
-			mainWindow.draw(energyBall);
+			for (auto ballIter = ballVector.begin(); ballIter != ballVector.end(); ++ballIter)
+			{
+				if ((*ballIter).isDead() == false)
+				{
+					mainWindow.draw((*ballIter));
+				}
+			}
 			mainWindow.display();
 		}
 

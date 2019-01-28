@@ -85,3 +85,20 @@ std::vector<sf::Vector2f> & Ball::getEdgePoints()
 
 	return edgePoints;
 }
+
+bool Ball::isDead()
+{
+	if (dead == true)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+void Ball::kill()
+{
+	dead = true;
+}

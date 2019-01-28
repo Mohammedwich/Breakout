@@ -20,6 +20,8 @@ public:
 	long double getAngle();
 	void setAngle(long double);
 	std::vector<sf::Vector2f> & getEdgePoints();
+	bool isDead();
+	void kill();
 
 	static int numberOfBalls;
 	
@@ -29,5 +31,6 @@ private:
 	bool stuck;
 	long double itsAngle;
 	std::vector<sf::Vector2f> edgePoints;
+	bool dead = false;
 };
 
