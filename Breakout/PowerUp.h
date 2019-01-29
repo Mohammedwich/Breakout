@@ -9,8 +9,8 @@ public:
 
 	//sf::Vector2f getPosition();
 	//void setPosition(sf::Vector2f);
-	void fallDown();
-	void draw(sf::RenderWindow & theWindow);
+	void fallDown(double);
+	void draw(sf::RenderWindow & theWindow, double);
 	void setPower(int);
 
 private:

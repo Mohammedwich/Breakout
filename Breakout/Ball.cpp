@@ -7,7 +7,7 @@ Ball::Ball() : edgePoints(8, sf::Vector2f(0.f, 0.f))
 {
 	std::uniform_int_distribution<int> startingAngleDist(45, 135);	//Launch angle from deflector
 	
-	itsSpeed = 0.7f;
+	itsSpeed = 0.6f;
 	stuck = true;
 	int randomAngle = startingAngleDist(ballRanDev);
 	itsAngle = randomAngle * (2 * std::_Pi / 360);
@@ -84,4 +84,21 @@ std::vector<sf::Vector2f> & Ball::getEdgePoints()
 								(sf::CircleShape::getPosition().y + (sf::CircleShape::getRadius() * sin(std::_Pi / 4))));
 
 	return edgePoints;
+}
+
+bool Ball::isDead()
+{
+	if (dead == true)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+void Ball::kill()
+{
+	dead = true;
 }

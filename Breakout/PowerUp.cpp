@@ -27,15 +27,15 @@ void PowerUp::setPosition(sf::Vector2f thePosition)
 }
 */
 
-void PowerUp::fallDown()
+void PowerUp::fallDown(double fallFactor)
 {
-	sf::RectangleShape::move(0, 0.4);
+	sf::RectangleShape::move(0, (0.4 * fallFactor) );
 }
 
-void PowerUp::draw(sf::RenderWindow & theWindow)
+void PowerUp::draw(sf::RenderWindow & theWindow, double fallFactor)
 {
 	theWindow.draw(*this);
-	fallDown();
+	fallDown(fallFactor);
 }
 
 void PowerUp::setPower(int theInt)

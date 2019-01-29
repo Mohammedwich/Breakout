@@ -76,9 +76,9 @@ int Brick::whichPower()
 	return itsPower;
 }
 
-void Brick::drawItsPowerUp(sf::RenderWindow & theWindow)
+void Brick::drawItsPowerUp(sf::RenderWindow & theWindow, double fallFactor)
 {
-	itsPowerUp.draw(theWindow);
+	itsPowerUp.draw(theWindow, fallFactor);
 }
 
 sf::Vector2f Brick::getPowerUpPosition()

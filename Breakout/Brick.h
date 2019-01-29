@@ -16,7 +16,7 @@ public:
 	bool isBroken();
 	void crush();
 	int whichPower();
-	void drawItsPowerUp(sf::RenderWindow & theWindow);
+	void drawItsPowerUp(sf::RenderWindow & theWindow, double);
 
 	sf::Vector2f getPowerUpPosition();
 	sf::FloatRect getPowerUpBounds();
