@@ -79,7 +79,8 @@ int main()
 
 	float deflectorWidth = 100;
 	float deflectorHight = 13;
-	float deflectorSpeed = 0.5;
+	float deflectorSpeed = 0.4;
+	float initialDeflectorSpeed = deflectorSpeed;
 	
 	bool deflectorMagnetized = false;
 	int bombAmmo = 0;
@@ -100,7 +101,8 @@ int main()
 	//The ball
 	std::vector<Ball> ballVector(1);
 	ballVector[0].move(deflectorPosition.x, deflectorPosition.y - ballVector[0].getRadius() - 1);//set initial position on top of deflector
-	float speed = ballVector[0].getSpeed();
+	float ballSpeed = ballVector[0].getSpeed();
+	float initialBallSpeed = ballSpeed;
 
 	//Texts
 	sf::Font sansation;
@@ -165,8 +167,8 @@ int main()
 	bool gameLost = false;
 	bool gameWon = false;
 	int brokenBricks = 0;
-	float initialBallSpeed = ballVector[0].getSpeed();
 	int numberOfBalls = 1;
+	int movingBalls = 0;	// Used to adjust ball and deflector speeds to compensate for increased looping
 
 	//Time 
 	sf::Clock theClock;
@@ -176,20 +178,13 @@ int main()
 	while (mainWindow.isOpen())
 	{
 		sf::Event event;
-		for (auto ballIter = ballVector.begin(); ballIter != ballVector.end(); ++ballIter)
-		{
-			if ((*ballIter).isDead() == false)
-			{
-				if ((*ballIter).isStuck())
-				{
-					deflectorSpeed = 0.5;
-				}
-				else
-				{
-					deflectorSpeed = 0.8;
-				}
-			}
-		}
+		
+		deflectorSpeed = initialDeflectorSpeed - (std::pow(brokenBricks, (0.95)) * (initialDeflectorSpeed / brickVector.size()) );
+		deflectorSpeed = ( deflectorSpeed + (deflectorSpeed * movingBalls * 2) );
+
+		ballSpeed = initialBallSpeed - ( std::pow(brokenBricks, (0.95)) * (initialBallSpeed / brickVector.size()) );
+		ballSpeed = ( ballSpeed + (ballSpeed * movingBalls * 2) );
+		
 
 		while (mainWindow.pollEvent(event))
 		{
@@ -237,6 +232,8 @@ int main()
 								if ((*ballIter).isStuck())
 								{
 									(*ballIter).unStick();
+									(*ballIter).move(0, -(*ballIter).getSpeed());	// To avoid edge glide bug
+									++movingBalls;
 								}
 							}
 						}
@@ -281,6 +278,9 @@ int main()
 						deflectorMagnetized = false;
 						bombAmmo = 0;
 						numberOfBalls = 1;
+						movingBalls = 0;
+						deflectorSpeed = initialDeflectorSpeed;
+						ballSpeed = initialBallSpeed;
 						// add single ball revert
 					}
 				}
@@ -297,7 +297,7 @@ int main()
 			{
 				if (!(*ballIter).isStuck() && gameLost == false && gameWon == false && paused == false && startScreen == false)
 				{
-					(*ballIter).move(speed*(cos((*ballIter).getAngle())), -speed*(sin((*ballIter).getAngle())));
+					(*ballIter).move(ballSpeed*(cos((*ballIter).getAngle())), -ballSpeed*(sin((*ballIter).getAngle())));
 
 					// If ball hits borders
 					if (borderLeftBound.contains(((*ballIter).getPosition().x - (*ballIter).getRadius()), (*ballIter).getPosition().y))
@@ -320,6 +320,7 @@ int main()
 						(*ballIter).kill();
 						(*ballIter).move(0, 20);
 						--numberOfBalls;
+						--movingBalls;
 
 						if (numberOfBalls == 0)
 						{
@@ -351,10 +352,16 @@ int main()
 							(*ballIter).setAngle((*ballIter).getAngle() - std::_Pi / 6);
 						}
 
+						(*ballIter).move(0, -(*ballIter).getSpeed());
+
 						// If deflector has the magnet powerUp
 						if (deflectorMagnetized == true)
 						{
-							(*ballIter).stick();
+							if ((*ballIter).isStuck() == false)
+							{
+								(*ballIter).stick();
+								--movingBalls;
+							}
 						}
 					}
 
@@ -383,8 +390,6 @@ int main()
 											(*brickIter).crush();
 											foundBrick = true;
 											++brokenBricks;
-											float ballSpeedRate = brokenBricks * 0.05; //To adjust ball speed to account for faster looping with less bricks. 
-											(*ballIter).setSpeed(initialBallSpeed - ballSpeedRate);
 
 											//Note: Brick origin is their top left corner, ball origin is its center
 											//ball ricochet off of top side
@@ -499,6 +504,8 @@ int main()
 						{
 							//add powerup to deflector
 							//add powerUp gained sound
+							theBrick.setPowerUpPosition(theBrick.getPowerUpPosition(), 50, 60);	//Make powerUp disappear offscreen when absorbed
+
 							switch (theBrick.whichPower())
 							{
 							case MAGNETIC: 
@@ -517,6 +524,7 @@ int main()
 								(*(ballVector.end() - 1)).move(deflectorPosition.x, deflectorPosition.y - (*(ballVector.end() - 1)).getRadius() - 1);
 								(*(ballVector.end() - 1)).setAngle(resetAngleDist(ballRanDev) * (2 * std::_Pi / 360));
 								(*(ballVector.end() - 1)).unStick();
+								++movingBalls;
 								//add speed adjustment
 								break;
 
@@ -525,7 +533,6 @@ int main()
 								break;
 							}
 
-							theBrick.setPowerUpPosition(theBrick.getPowerUpPosition(), 0, 20);	//Make powerUp disappear offscreen when absorbed
 						}
 
 					}
