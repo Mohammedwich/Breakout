@@ -39,25 +39,25 @@ int main()
 
 	// Setting game's borders
 	sf::RectangleShape borderUp;
-	borderUp.setSize(sf::Vector2f(550, 1) );
+	borderUp.setSize(sf::Vector2f(550, 5) );
 	borderUp.setPosition(sf::Vector2f(0, 0) );
 	borderUp.setFillColor(sf::Color::Transparent);
 	sf::FloatRect borderUpBound = borderUp.getGlobalBounds();
 
 	sf::RectangleShape borderDown;
-	borderDown.setSize(sf::Vector2f(550, 1));
+	borderDown.setSize(sf::Vector2f(550, 5));
 	borderDown.setPosition(sf::Vector2f(0, 600));
 	borderDown.setFillColor(sf::Color::Transparent);
 	sf::FloatRect borderDownBound = borderDown.getGlobalBounds();
 
 	sf::RectangleShape borderLeft;
-	borderLeft.setSize(sf::Vector2f(1, 600));
+	borderLeft.setSize(sf::Vector2f(5, 600));
 	borderLeft.setPosition(sf::Vector2f(0, 0));
 	borderLeft.setFillColor(sf::Color::Transparent);
 	sf::FloatRect borderLeftBound = borderLeft.getGlobalBounds();
 
 	sf::RectangleShape borderRight;
-	borderRight.setSize(sf::Vector2f(1, 600));
+	borderRight.setSize(sf::Vector2f(5, 600));
 	borderRight.setPosition(sf::Vector2f(550, 0));
 	borderRight.setFillColor(sf::Color::Transparent);
 	sf::FloatRect borderRightBound = borderRight.getGlobalBounds();
@@ -79,7 +79,7 @@ int main()
 
 	float deflectorWidth = 100;
 	float deflectorHight = 13;
-	float deflectorSpeed = 0.4;
+	float deflectorSpeed = 0.65;
 	float initialDeflectorSpeed = deflectorSpeed;
 	
 	bool deflectorMagnetized = false;
@@ -168,7 +168,8 @@ int main()
 	bool gameWon = false;
 	int brokenBricks = 0;
 	int numberOfBalls = 1;
-	int movingBalls = 0;	// Used to adjust ball and deflector speeds to compensate for increased looping
+	int movingBalls = 0;	// Used to adjust speeds to compensate for increased looping
+	double powerUpFallFactor = 1;	// Used to adjust how fast powerUps fall
 
 	//Time 
 	sf::Clock theClock;
@@ -179,12 +180,21 @@ int main()
 	{
 		sf::Event event;
 		
-		deflectorSpeed = initialDeflectorSpeed - (std::pow(brokenBricks, (0.95)) * (initialDeflectorSpeed / brickVector.size()) );
-		deflectorSpeed = ( deflectorSpeed + (deflectorSpeed * movingBalls * 2) );
+		deflectorSpeed = initialDeflectorSpeed - (std::pow(brokenBricks, (0.52)) * (initialDeflectorSpeed / brickVector.size() / 2) );
+		deflectorSpeed = ( deflectorSpeed + (deflectorSpeed * (movingBalls - ((movingBalls == 0) ? 0 : 1) ) * 2) );
 
-		ballSpeed = initialBallSpeed - ( std::pow(brokenBricks, (0.95)) * (initialBallSpeed / brickVector.size()) );
-		ballSpeed = ( ballSpeed + (ballSpeed * movingBalls * 2) );
+		ballSpeed = initialBallSpeed - ( std::pow(brokenBricks, (0.52)) * (initialBallSpeed / brickVector.size() / 2) );
+		ballSpeed = ( ballSpeed + (ballSpeed * (movingBalls - ((movingBalls == 0) ? 0 : 1) ) * 2) );
 		
+		
+		powerUpFallFactor = 1;
+		powerUpFallFactor = (powerUpFallFactor - (std::pow(brokenBricks, (0.47)) * (powerUpFallFactor / brickVector.size() / 2)) );
+
+		if (movingBalls > 0)
+		{
+			powerUpFallFactor *= movingBalls;
+		}
+
 
 		while (mainWindow.pollEvent(event))
 		{
@@ -232,11 +242,16 @@ int main()
 								if ((*ballIter).isStuck())
 								{
 									(*ballIter).unStick();
-									(*ballIter).move(0, -(*ballIter).getSpeed());	// To avoid edge glide bug
+									(*ballIter).move(0, -( (*ballIter).getSpeed() + 0.5) );	// To avoid edge glide bug
 									++movingBalls;
 								}
 							}
 						}
+					}
+
+					if ((event.key.code == sf::Keyboard::Down))
+					{
+						brokenBricks += 5;
 					}
 
 					if (event.key.code == sf::Keyboard::Num1 && bombAmmo > 0)
@@ -281,7 +296,6 @@ int main()
 						movingBalls = 0;
 						deflectorSpeed = initialDeflectorSpeed;
 						ballSpeed = initialBallSpeed;
-						// add single ball revert
 					}
 				}
 			}
@@ -352,7 +366,7 @@ int main()
 							(*ballIter).setAngle((*ballIter).getAngle() - std::_Pi / 6);
 						}
 
-						(*ballIter).move(0, -(*ballIter).getSpeed());
+						(*ballIter).move(0, -( (*ballIter).getSpeed() + 0.5) );
 
 						// If deflector has the magnet powerUp
 						if (deflectorMagnetized == true)
@@ -360,6 +374,8 @@ int main()
 							if ((*ballIter).isStuck() == false)
 							{
 								(*ballIter).stick();
+								double angleAdjustment = (std::_Pi * 2 / 3) * ( (deflectorPosition.x - (*ballIter).getPosition().x ) / deflectorWidth );
+								(*ballIter).setAngle( (std::_Pi / 2) + angleAdjustment);
 								--movingBalls;
 							}
 						}
@@ -375,8 +391,7 @@ int main()
 					{
 						if ((*ballIter).isDead() == false)
 						{
-							bool foundBrick = false;	//To stop iterating once we have the impacted brick. Should get reinitialized on false every time "Move the ball" block runs
-							for (auto brickIter = brickVector.begin(); brickIter != brickVector.end() && foundBrick == false; ++brickIter)
+							for (auto brickIter = brickVector.begin(); brickIter != brickVector.end(); ++brickIter)
 							{
 								if ((*brickIter).isBroken() == false)
 								{
@@ -388,7 +403,6 @@ int main()
 										{
 											//add brick crush sound here
 											(*brickIter).crush();
-											foundBrick = true;
 											++brokenBricks;
 
 											//Note: Brick origin is their top left corner, ball origin is its center
@@ -498,7 +512,7 @@ int main()
 				{
 					if (theBrick.whichPower() != 0)
 					{
-						theBrick.drawItsPowerUp(mainWindow);
+						theBrick.drawItsPowerUp(mainWindow, powerUpFallFactor);
 
 						if (theBrick.getPowerUpBounds().intersects(ballDeflector.getGlobalBounds()))
 						{
@@ -532,9 +546,7 @@ int main()
 								cout << "powerUp consumption switch error." << endl;
 								break;
 							}
-
 						}
-
 					}
 				}
 			}
@@ -547,6 +559,11 @@ int main()
 					mainWindow.draw((*ballIter));
 				}
 			}
+			mainWindow.display();
+		}
+		if (paused == true)
+		{
+			mainWindow.draw(pauseText);
 			mainWindow.display();
 		}
 
