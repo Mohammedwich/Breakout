@@ -4,11 +4,14 @@
 #include "stdafx.h"
 #include "Brick.h"
 #include "Ball.h"
+#include "Bomb.h"
 #include <iostream>
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
 #include <vector>
 #include <cmath>
+#include <thread>
+#include <chrono>
 
 using std::cin;
 using std::cout;
@@ -79,11 +82,10 @@ int main()
 
 	float deflectorWidth = 100;
 	float deflectorHight = 13;
-	float deflectorSpeed = 0.65;
+	float deflectorSpeed = 4;
 	float initialDeflectorSpeed = deflectorSpeed;
 	
 	bool deflectorMagnetized = false;
-	int bombAmmo = 0;
 
 
 	// The bricks and their positions on the window
@@ -104,6 +106,13 @@ int main()
 	float ballSpeed = ballVector[0].getSpeed();
 	float initialBallSpeed = ballSpeed;
 
+	//Bomb
+	Bomb gravityBomb;
+	int bombAmmo = 0;
+	double initialBombSpeed = 2.5;
+	double bombSpeed = initialBombSpeed;
+
+
 	//Texts
 	sf::Font sansation;
 	if (!sansation.loadFromFile("sansation.ttf") )
@@ -117,10 +126,15 @@ int main()
 	startText.setFillColor(sf::Color(193, 129, 112));
 	startText.setOutlineThickness(5);
 	startText.setOutlineColor(sf::Color::Black);
-	startText.setPosition(75, 250);
+	startText.setPosition(40, 190);
 	startText.setString("Use the left and right keys to move the deflector.\n"
 						"Use the up key to release the ball.\n"
 						"To pause and un-pause click the space bar.\n\n"
+
+						"Press 'B' to fire gravity-bombs and 'B' again to detonate.\n"
+						"You can't fire another bomb until the previous one stops\n"
+						"sucking. You can store up to 3 bombs.\n\n"
+
 						"To start the game, hit Enter.\n");
 
 	sf::Text pauseText;
@@ -172,29 +186,46 @@ int main()
 	double powerUpFallFactor = 1;	// Used to adjust how fast powerUps fall
 
 	//Time 
-	sf::Clock theClock;
+	sf::Clock bombClock;
+	sf::Time timeSinceDenotation;
+	int millisecondsperLoop = 10;	// If changed, adjust deflector, ball, powerUp, bomb speeds.
+
+	sf::Clock threadTimer;	//Used to make every loop last the same amount of time
 	
 
 
 	while (mainWindow.isOpen())
 	{
+		threadTimer.restart();
+
 		sf::Event event;
-		
-		deflectorSpeed = initialDeflectorSpeed - (std::pow(brokenBricks, (0.52)) * (initialDeflectorSpeed / brickVector.size() / 2) );
-		deflectorSpeed = ( deflectorSpeed + (deflectorSpeed * (movingBalls - ((movingBalls == 0) ? 0 : 1) ) * 2) );
 
-		ballSpeed = initialBallSpeed - ( std::pow(brokenBricks, (0.52)) * (initialBallSpeed / brickVector.size() / 2) );
-		ballSpeed = ( ballSpeed + (ballSpeed * (movingBalls - ((movingBalls == 0) ? 0 : 1) ) * 2) );
-		
-		
-		powerUpFallFactor = 1;
-		powerUpFallFactor = (powerUpFallFactor - (std::pow(brokenBricks, (0.47)) * (powerUpFallFactor / brickVector.size() / 2)) );
-
-		if (movingBalls > 0)
+		/* Speed adjustments. Obsolete after loop throttling
+		if (startScreen == false)
 		{
-			powerUpFallFactor *= movingBalls;
-		}
+			deflectorSpeed = initialDeflectorSpeed - (std::pow(brokenBricks, (0.52)) * (initialDeflectorSpeed / brickVector.size() / 2));
+			deflectorSpeed = (deflectorSpeed + (deflectorSpeed * (movingBalls - ((movingBalls == 0) ? 0 : 1)) * 2));
 
+			ballSpeed = initialBallSpeed - (std::pow(brokenBricks, (0.52)) * (initialBallSpeed / brickVector.size() / 2));
+			ballSpeed = (ballSpeed + (ballSpeed * (movingBalls - ((movingBalls == 0) ? 0 : 1)) * 2));
+
+
+			powerUpFallFactor = 1;
+			powerUpFallFactor = (powerUpFallFactor - (std::pow(brokenBricks, (0.47)) * (powerUpFallFactor / brickVector.size() / 2)));
+			if (movingBalls > 0)
+			{
+				powerUpFallFactor *= movingBalls;
+			}
+
+			bombSpeed = initialBombSpeed;
+			bombSpeed = (bombSpeed - (std::pow(brokenBricks, (0.47)) * (bombSpeed / brickVector.size() / 2)));
+			if (movingBalls > 0)
+			{
+				bombSpeed *= movingBalls;
+			}
+
+		}
+		*/
 
 		while (mainWindow.pollEvent(event))
 		{
@@ -248,15 +279,22 @@ int main()
 							}
 						}
 					}
-
-					if ((event.key.code == sf::Keyboard::Down))
+					
+					if ( (event.key.code == sf::Keyboard::B) && (bombAmmo > 0) && (gravityBomb.isDetonated() == false) )
 					{
-						brokenBricks += 5;
-					}
+						if (gravityBomb.isFlying() == false)
+						{
+							gravityBomb.setPosition(sf::Vector2f(deflectorPosition.x, deflectorPosition.y - 5));
+							gravityBomb.shoot();
+						}
+						else
+						{
+							//add gravity sound
+							gravityBomb.detonate();
+							--bombAmmo;	// Reduce ammo here and in upperBound impact so ammo condition doesn't prevent detonation
+							bombClock.restart();
+						}
 
-					if (event.key.code == sf::Keyboard::Num1 && bombAmmo > 0)
-					{
-						--bombAmmo;
 						// add shoot bomb
 					}
 
@@ -290,19 +328,26 @@ int main()
 						gameLost = false;
 						gameWon = false;
 						brokenBricks = 0;
+
 						deflectorMagnetized = false;
-						bombAmmo = 0;
+						deflectorSpeed = initialDeflectorSpeed;	
+
 						numberOfBalls = 1;
 						movingBalls = 0;
-						deflectorSpeed = initialDeflectorSpeed;
 						ballSpeed = initialBallSpeed;
+
+						bombSpeed = initialBombSpeed;
+						gravityBomb.setPosition(-99, -99);
+						gravityBomb.revertDetonation();
+						gravityBomb.stopFlight();
+						timeSinceDenotation = sf::seconds(0);
+						bombAmmo = 0;
 					}
 				}
 			}
 
 		}
 
-		
 
 		//Moving the ball
 		for (auto ballIter = ballVector.begin(); ballIter != ballVector.end(); ++ballIter)
@@ -486,6 +531,44 @@ int main()
 			}
 		}
 		
+		
+		//Bomb block
+		if (gravityBomb.isDetonated() == true)
+		{
+			timeSinceDenotation = bombClock.getElapsedTime();
+		}
+
+		if (timeSinceDenotation.asSeconds() > 3 && gravityBomb.isFlying() == true && gravityBomb.isDetonated() == true )
+		{
+			gravityBomb.setPosition(-99, -99);
+			gravityBomb.revertDetonation();
+			gravityBomb.stopFlight();
+			timeSinceDenotation = sf::seconds(0);
+		}
+		
+		if (borderUpBound.contains(gravityBomb.getPosition().x, gravityBomb.getPosition().y + gravityBomb.getRadius()))
+		{
+			//add gravity sound
+			gravityBomb.detonate();
+			--bombAmmo; // Ammo reduction on detonation to avoid B-press event's ammo condition fail to stop player from detonating
+			bombClock.restart();
+		}
+
+		if (gravityBomb.isDetonated() == true )
+		{
+			for (auto brickIter = brickVector.begin(); brickIter != brickVector.end(); ++brickIter)
+			{
+				sf::FloatRect bombBound = gravityBomb.getGlobalBounds();
+
+				if ( (*brickIter).isBroken() == false && bombBound.intersects((*brickIter).getGlobalBounds()))
+				{
+					//add brick crush sound
+					(*brickIter).crush();
+					++brokenBricks;
+				}
+			}
+		}
+
 
 		// Draw Start screen
 		if (gameLost == false && gameWon == false && paused == false && startScreen == true)
@@ -534,7 +617,8 @@ int main()
 							case EXTRABALL: 
 								ballVector.emplace_back();
 								++numberOfBalls;
-								(*(ballVector.end() - 1)).setPosition(0, 0);	// Set up the last ball made
+								// Setting up the new ball
+								(*(ballVector.end() - 1)).setPosition(0, 0);	
 								(*(ballVector.end() - 1)).move(deflectorPosition.x, deflectorPosition.y - (*(ballVector.end() - 1)).getRadius() - 1);
 								(*(ballVector.end() - 1)).setAngle(resetAngleDist(ballRanDev) * (2 * std::_Pi / 360));
 								(*(ballVector.end() - 1)).unStick();
@@ -552,6 +636,7 @@ int main()
 			}
 
 			mainWindow.draw(ballDeflector);
+
 			for (auto ballIter = ballVector.begin(); ballIter != ballVector.end(); ++ballIter)
 			{
 				if ((*ballIter).isDead() == false)
@@ -559,6 +644,12 @@ int main()
 					mainWindow.draw((*ballIter));
 				}
 			}
+
+			if (gravityBomb.isFlying())
+			{
+				gravityBomb.draw(mainWindow, bombSpeed);
+			}
+
 			mainWindow.display();
 		}
 		if (paused == true)
@@ -612,9 +703,19 @@ int main()
 			mainWindow.draw(pauseText);
 			mainWindow.display();
 		}*/
+
+		double loopTime = threadTimer.getElapsedTime().asMilliseconds();
+		std::floor(loopTime);
+		if (loopTime < millisecondsperLoop)
+		{
+			int sleepDuration = millisecondsperLoop - loopTime;
+			std::this_thread::sleep_for(std::chrono::milliseconds(sleepDuration));
+		}
 	}
 
-	
+	std::this_thread::sleep_for(std::chrono::seconds(1));
+	// End all threads here.
+
 	return 0;
 }
 
