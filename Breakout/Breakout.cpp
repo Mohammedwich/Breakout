@@ -42,7 +42,7 @@ int main()
 
 	// Setting game's borders
 	sf::RectangleShape borderUp;
-	borderUp.setSize(sf::Vector2f(550, 5) );
+	borderUp.setSize(sf::Vector2f(550, -5) );
 	borderUp.setPosition(sf::Vector2f(0, 0) );
 	borderUp.setFillColor(sf::Color::Transparent);
 	sf::FloatRect borderUpBound = borderUp.getGlobalBounds();
@@ -54,7 +54,7 @@ int main()
 	sf::FloatRect borderDownBound = borderDown.getGlobalBounds();
 
 	sf::RectangleShape borderLeft;
-	borderLeft.setSize(sf::Vector2f(5, 600));
+	borderLeft.setSize(sf::Vector2f(-5, 600));
 	borderLeft.setPosition(sf::Vector2f(0, 0));
 	borderLeft.setFillColor(sf::Color::Transparent);
 	sf::FloatRect borderLeftBound = borderLeft.getGlobalBounds();
@@ -506,7 +506,7 @@ int main()
 				{
 					if ((*ballIter).isDead() == false)
 					{
-						if ((*ballIter).isStuck())
+						if ( (*ballIter).isStuck() == true && borderLeftBound.contains( ((*ballIter).getPosition().x - (*ballIter).getRadius() ), ( (*ballIter).getPosition().y) ) == false )
 						{
 							(*ballIter).move(-deflectorSpeed, 0);
 						}
@@ -522,7 +522,7 @@ int main()
 				{
 					if ((*ballIter).isDead() == false)
 					{
-						if ((*ballIter).isStuck())
+						if ((*ballIter).isStuck() == true && borderRightBound.contains(((*ballIter).getPosition().x + (*ballIter).getRadius()), ((*ballIter).getPosition().y)) == false)
 						{
 							(*ballIter).move(deflectorSpeed, 0);
 						}
