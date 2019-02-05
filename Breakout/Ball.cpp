@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "Ball.h"
 
-int Ball::numberOfBalls = 0;
+//int Ball::numberOfBalls = 0;
 
 Ball::Ball() : edgePoints(8, sf::Vector2f(0.f, 0.f))
 {
@@ -17,7 +17,7 @@ Ball::Ball() : edgePoints(8, sf::Vector2f(0.f, 0.f))
 	sf::CircleShape::setFillColor(sf::Color(201, 255, 10));
 	sf::CircleShape::setOrigin(getRadius(), getRadius());
 
-	++numberOfBalls;
+	//++numberOfBalls;
 }
 
 

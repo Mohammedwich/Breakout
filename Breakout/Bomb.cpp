@@ -1,12 +1,29 @@
 #include "stdafx.h"
 #include "Bomb.h"
-
+#include <iostream>
 
 Bomb::Bomb()
 {
 	setFillColor(sf::Color(139, 139, 147));
 	setRadius(7);
 	setOrigin(getRadius(), getRadius() );
+
+	if (!detonationTexture.loadFromFile("Gravity bomb hole.png"))
+	{
+		std::cout << "Failed to load for detonationTexture" << std::endl;
+	}
+
+	if (!noTexture.loadFromFile("Blank white.png") )
+	{
+		std::cout << "Failed to load for noTexture" << std::endl;
+	}
+
+	if (!detonationBuffer.loadFromFile("Gravity bomb detonation.wav") )
+	{
+		std::cout << "Failed to load for detonationBuffer" << std::endl;
+	}
+
+	detonationSound.setBuffer(detonationBuffer);
 }
 
 
@@ -46,9 +63,11 @@ void Bomb::detonate()
 	setOrigin(getRadius(), getRadius());
 	move(currentPosition);
 
-	setFillColor(sf::Color(0, 0, 0));
+	setFillColor(sf::Color(255, 255, 255, 140));
 	detonated = true;
-	//inFlight = false;
+	setTexture(&detonationTexture);
+
+	detonationSound.play();
 }
 
 bool Bomb::isDetonated()
@@ -71,7 +90,7 @@ void Bomb::draw(sf::RenderWindow & theWindow, double speed)
 	{
 		sf::CircleShape::move(0, -speed);
 	}
-	rotate(0.5);
+	rotate(-1.5);
 }
 
 void Bomb::revertDetonation()
@@ -86,4 +105,8 @@ void Bomb::revertDetonation()
 
 	setFillColor(sf::Color(139, 139, 147));
 	detonated = false;
+	
+	setTexture(& noTexture);
+
+	detonationSound.stop();
 }

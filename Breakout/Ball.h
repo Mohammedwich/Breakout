@@ -23,7 +23,7 @@ public:
 	bool isDead();
 	void kill();
 
-	static int numberOfBalls;
+	//static int numberOfBalls;
 	
 
 private:

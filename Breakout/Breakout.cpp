@@ -189,8 +189,10 @@ int main()
 	sf::Clock bombClock;
 	sf::Time timeSinceDenotation;
 	int millisecondsperLoop = 10;	// If changed, adjust deflector, ball, powerUp, bomb speeds.
-
 	sf::Clock threadTimer;	//Used to make every loop last the same amount of time
+
+	//Sounds
+
 	
 
 

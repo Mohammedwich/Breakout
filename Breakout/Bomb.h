@@ -1,5 +1,6 @@
 #pragma once
 #include <sfml/Graphics.hpp>
+#include <SFML/Audio.hpp>
 
 class Bomb : public sf::CircleShape
 {
@@ -19,5 +20,10 @@ public:
 private:
 	bool detonated = false;
 	bool inFlight = false;
+
+	sf::Texture detonationTexture;
+	sf::Texture noTexture;
+	sf::SoundBuffer detonationBuffer;
+	sf::Sound detonationSound;
 };
 
