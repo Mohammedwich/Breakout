@@ -50,6 +50,13 @@ int main()
 		cout << "Failed to load for galaxyTexture" << endl;
 	}
 
+
+	sf::Texture textureForBricks;
+	if (!textureForBricks.loadFromFile("Rocky.jpg"))
+	{
+		cout << "Failed to load for textureForBricks" << endl;
+	}
+
 	// Making background
 	sf::Sprite background;
 	background.setTexture(galaxyTexture);
@@ -112,6 +119,7 @@ int main()
 		for (int column = 0; column < 10; ++column)
 		{
 			brickVector[(row * 10) + column].setPosition(sf::Vector2f( (1+ column*55.f), (1 + row*19.f) ));
+			brickVector[(row * 10) + column].setTexture(& textureForBricks);
 			brickVector[(row * 10) + column].syncPowerUpPosition();
 		}
 	}
@@ -124,7 +132,7 @@ int main()
 
 	//Bomb
 	Bomb gravityBomb;
-	int bombAmmo = 2;
+	int bombAmmo = 0;
 	double initialBombSpeed = 2.5;
 	double bombSpeed = initialBombSpeed;
 
