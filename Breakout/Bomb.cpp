@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "Bomb.h"
-#include <iostream>
 
 Bomb::Bomb()
 {

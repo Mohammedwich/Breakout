@@ -1,6 +1,7 @@
 #pragma once
-#include <sfml/Graphics.hpp>
-#include <SFML/Audio.hpp>
+#include <iostream>
+#include <SFML\Graphics.hpp>
+#include <SFML\Audio.hpp>
 
 class Bomb : public sf::CircleShape
 {

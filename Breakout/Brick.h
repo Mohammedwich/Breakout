@@ -1,7 +1,7 @@
 #pragma once
-#include <SFML/Graphics.hpp>
-#include <sfml/Audio.hpp>
 #include <iostream>
+#include <SFML\Graphics.hpp>
+#include <SFML\Audio.hpp>
 #include <random>
 #include "PowerUp.h"
 

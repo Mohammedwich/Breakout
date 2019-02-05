@@ -6,8 +6,8 @@
 #include "Ball.h"
 #include "Bomb.h"
 #include <iostream>
-#include <SFML/Graphics.hpp>
-#include <SFML/Audio.hpp>
+#include <SFML\Graphics.hpp>
+#include <SFML\Audio.hpp>
 #include <vector>
 #include <cmath>
 #include <thread>
@@ -232,32 +232,6 @@ int main()
 
 		sf::Event event;
 
-		/* Speed adjustments. Obsolete after loop throttling
-		if (startScreen == false)
-		{
-			deflectorSpeed = initialDeflectorSpeed - (std::pow(brokenBricks, (0.52)) * (initialDeflectorSpeed / brickVector.size() / 2));
-			deflectorSpeed = (deflectorSpeed + (deflectorSpeed * (movingBalls - ((movingBalls == 0) ? 0 : 1)) * 2));
-
-			ballSpeed = initialBallSpeed - (std::pow(brokenBricks, (0.52)) * (initialBallSpeed / brickVector.size() / 2));
-			ballSpeed = (ballSpeed + (ballSpeed * (movingBalls - ((movingBalls == 0) ? 0 : 1)) * 2));
-
-
-			powerUpFallFactor = 1;
-			powerUpFallFactor = (powerUpFallFactor - (std::pow(brokenBricks, (0.47)) * (powerUpFallFactor / brickVector.size() / 2)));
-			if (movingBalls > 0)
-			{
-				powerUpFallFactor *= movingBalls;
-			}
-
-			bombSpeed = initialBombSpeed;
-			bombSpeed = (bombSpeed - (std::pow(brokenBricks, (0.47)) * (bombSpeed / brickVector.size() / 2)));
-			if (movingBalls > 0)
-			{
-				bombSpeed *= movingBalls;
-			}
-
-		}
-		*/
 
 		while (mainWindow.pollEvent(event))
 		{
@@ -351,6 +325,7 @@ int main()
 							for (int column = 0; column < 10; ++column)
 							{
 								brickVector[(row * 10) + column].setPosition(sf::Vector2f((1 + column*55.f), (1 + row*19.f)));
+								brickVector[(row * 10) + column].setTexture(&textureForBricks);
 								brickVector[(row * 10) + column].syncPowerUpPosition();
 							}
 						}
@@ -707,32 +682,8 @@ int main()
 			mainWindow.display();
 		}
 
-		// Seems this block may be unnecessary. Check for cleaning at the end.
-		/*
-		// Draw pause screen
-		if (gameLost == false && gameWon == false && paused == true && startScreen == false)
-		{
-			mainWindow.clear(sf::Color::Cyan);
-			mainWindow.draw(background);
 
-			for (Brick & theBrick : brickVector)
-			{
-				if (theBrick.isBroken() == false)
-				{
-					mainWindow.draw(theBrick);
-				}
-				else
-				{
-					theBrick.drawItsPowerUp(mainWindow);
-				}
-			}
-
-			mainWindow.draw(ballDeflector);
-			mainWindow.draw(energyBall);
-			mainWindow.draw(pauseText);
-			mainWindow.display();
-		}*/
-
+		//Throttling thread to make loop time consistent
 		double loopTime = threadTimer.getElapsedTime().asMilliseconds();
 		std::floor(loopTime);
 		if (loopTime < millisecondsperLoop)

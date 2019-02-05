@@ -1,7 +1,6 @@
 #pragma once
-#include <SFML\Graphics.hpp>
-#include <SFML/Audio.hpp>
 #include <iostream>
+#include <SFML\Graphics.hpp>
 #include <random>
 #include <vector>
 #include <cmath>
@@ -24,8 +23,6 @@ public:
 	std::vector<sf::Vector2f> & getEdgePoints();
 	bool isDead();
 	void kill();
-
-	//static int numberOfBalls;
 	
 
 private:

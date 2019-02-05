@@ -13,19 +13,6 @@ PowerUp::~PowerUp()
 {
 }
 
-/*
-sf::Vector2f PowerUp::getPosition()
-{
-	return itsPosition;
-}
-*/
-
-/*
-void PowerUp::setPosition(sf::Vector2f thePosition)
-{
-	itsPosition = thePosition;
-}
-*/
 
 void PowerUp::fallDown(double fallFactor)
 {

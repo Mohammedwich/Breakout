@@ -24,9 +24,6 @@ Brick::Brick()
 	}
 
 
-	//Setting up the powerUp within
-	//itsPowerUp.setPosition((*this).getPosition());
-	//itsPowerUp.move(4, 0);
 	itsPowerUp.setPower(itsPower);
 
 	switch (itsPower)

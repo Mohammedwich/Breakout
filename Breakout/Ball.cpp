@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "Ball.h"
 
-//int Ball::numberOfBalls = 0;
 
 Ball::Ball() : edgePoints(8, sf::Vector2f(0.f, 0.f))
 {
