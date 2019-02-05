@@ -44,6 +44,14 @@ int main()
 	sf::Sound shootSound(shootBuffer);
 
 
+	sf::SoundBuffer powerUpBuffer;
+	if (!powerUpBuffer.loadFromFile("Breakout_PowerUp.wav"))
+	{
+		std::cout << "Failed to load for powerUpBuffer." << std::endl;
+	}
+	sf::Sound powerUpSound(powerUpBuffer);
+
+
 	sf::Texture galaxyTexture;
 	if (!galaxyTexture.loadFromFile("Galaxy.jpg"))
 	{
@@ -471,7 +479,6 @@ int main()
 									{
 										if (brickBound.contains(*ballPointIter))
 										{
-											//add brick crush sound here
 											(*brickIter).crush();
 											++brokenBricks;
 
@@ -573,7 +580,6 @@ int main()
 		
 		if (borderUpBound.contains(gravityBomb.getPosition().x, gravityBomb.getPosition().y + gravityBomb.getRadius()))
 		{
-			//add gravity sound
 			gravityBomb.detonate();
 			--bombAmmo; // Ammo reduction on detonation to avoid B-press event's ammo condition fail to stop player from detonating
 			bombClock.restart();
@@ -587,7 +593,6 @@ int main()
 
 				if ( (*brickIter).isBroken() == false && bombBound.intersects((*brickIter).getGlobalBounds()))
 				{
-					//add brick crush sound
 					(*brickIter).crush();
 					++brokenBricks;
 				}
@@ -624,8 +629,8 @@ int main()
 
 						if (theBrick.getPowerUpBounds().intersects(ballDeflector.getGlobalBounds()))
 						{
-							//add powerup to deflector
-							//add powerUp gained sound
+							powerUpSound.play();
+
 							theBrick.setPowerUpPosition(theBrick.getPowerUpPosition(), 50, 60);	//Make powerUp disappear offscreen when absorbed
 
 							switch (theBrick.whichPower())
@@ -648,7 +653,6 @@ int main()
 								(*(ballVector.end() - 1)).setAngle(resetAngleDist(ballRanDev) * (2 * std::_Pi / 360));
 								(*(ballVector.end() - 1)).unStick();
 								++movingBalls;
-								//add speed adjustment
 								break;
 
 							default: 
