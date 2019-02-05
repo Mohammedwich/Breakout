@@ -28,6 +28,22 @@ int main()
 
 	sf::RenderWindow mainWindow(sf::VideoMode(550, 600), "Breakout", sf::Style::Close | sf::Style::Titlebar, context);
 
+	sf::SoundBuffer ballDeflectBuffer;
+	if (!ballDeflectBuffer.loadFromFile("Ball deflector impact.wav"))
+	{
+		std::cout << "Failed to load for ballDeflectBuffer." << std::endl;
+	}
+	sf::Sound ballDeflectSound(ballDeflectBuffer);
+
+
+	sf::SoundBuffer shootBuffer;
+	if (!shootBuffer.loadFromFile("Breakout_Shoot.wav"))
+	{
+		std::cout << "Failed to load for shootBuffer." << std::endl;
+	}
+	sf::Sound shootSound(shootBuffer);
+
+
 	sf::Texture galaxyTexture;
 	if (!galaxyTexture.loadFromFile("Galaxy.jpg"))
 	{
@@ -108,7 +124,7 @@ int main()
 
 	//Bomb
 	Bomb gravityBomb;
-	int bombAmmo = 0;
+	int bombAmmo = 2;
 	double initialBombSpeed = 2.5;
 	double bombSpeed = initialBombSpeed;
 
@@ -188,10 +204,8 @@ int main()
 	//Time 
 	sf::Clock bombClock;
 	sf::Time timeSinceDenotation;
-	int millisecondsperLoop = 10;	// If changed, adjust deflector, ball, powerUp, bomb speeds.
+	int millisecondsperLoop = 11;	// If changed, adjust deflector, ball, powerUp, bomb speeds.
 	sf::Clock threadTimer;	//Used to make every loop last the same amount of time
-
-	//Sounds
 
 	
 
@@ -288,16 +302,14 @@ int main()
 						{
 							gravityBomb.setPosition(sf::Vector2f(deflectorPosition.x, deflectorPosition.y - 5));
 							gravityBomb.shoot();
+							shootSound.play();
 						}
 						else
 						{
-							//add gravity sound
 							gravityBomb.detonate();
 							--bombAmmo;	// Reduce ammo here and in upperBound impact so ammo condition doesn't prevent detonation
 							bombClock.restart();
 						}
-
-						// add shoot bomb
 					}
 
 					// Reset stuff on new game
@@ -364,16 +376,19 @@ int main()
 					if (borderLeftBound.contains(((*ballIter).getPosition().x - (*ballIter).getRadius()), (*ballIter).getPosition().y))
 					{
 						(*ballIter).setAngle(std::_Pi - (*ballIter).getAngle());
+						ballDeflectSound.play();
 					}
 
 					if (borderRightBound.contains(((*ballIter).getPosition().x + (*ballIter).getRadius()), (*ballIter).getPosition().y))
 					{
 						(*ballIter).setAngle(std::_Pi - (*ballIter).getAngle());
+						ballDeflectSound.play();
 					}
 
 					if (borderUpBound.contains(((*ballIter).getPosition().x), (*ballIter).getPosition().y - (*ballIter).getRadius()))
 					{
 						(*ballIter).setAngle(0 - (*ballIter).getAngle());
+						ballDeflectSound.play();
 					}
 
 					if (borderDownBound.contains(((*ballIter).getPosition().x), (*ballIter).getPosition().y + (*ballIter).getRadius()))
@@ -396,8 +411,8 @@ int main()
 						(((*ballIter).getPosition().y + (*ballIter).getRadius()) <= deflectorPosition.y + (0.75 * deflectorHight)) &&
 						(gameLost == false))
 					{
-						//add sound here
 						(*ballIter).setAngle(0 - (*ballIter).getAngle());
+						ballDeflectSound.play();
 
 						// Make ball deflect more to the left if it hits the left edge of the deflector
 						if (((*ballIter).getPosition().x >= (deflectorPosition.x - deflectorWidth / 2)) &&
@@ -715,8 +730,8 @@ int main()
 		}
 	}
 
-	std::this_thread::sleep_for(std::chrono::seconds(1));
-	// End all threads here.
+	std::this_thread::sleep_for(std::chrono::seconds(2));
+	// Join/end any running threads here.
 
 	return 0;
 }

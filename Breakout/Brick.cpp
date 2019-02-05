@@ -47,6 +47,13 @@ Brick::Brick()
 		break;
 	}
 
+
+	if (!breakBuffer.loadFromFile("Brick break.wav"))
+	{
+		std::cout << "Failed to load for detonationBuffer" << std::endl;
+	}
+
+	breakSound.setBuffer(breakBuffer);
 }
 
 
@@ -69,6 +76,7 @@ bool Brick::isBroken()
 void Brick::crush()
 {
 	broken = true;
+	breakSound.play();
 }
 
 int Brick::whichPower()

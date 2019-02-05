@@ -1,5 +1,7 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include <sfml/Audio.hpp>
+#include <iostream>
 #include <random>
 #include "PowerUp.h"
 
@@ -29,5 +31,8 @@ private:
 	int itsPower = 0;	
 	bool broken = false;
 	PowerUp itsPowerUp;
+
+	sf::SoundBuffer breakBuffer;
+	sf::Sound breakSound;
 };
 

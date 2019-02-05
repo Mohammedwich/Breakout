@@ -17,7 +17,7 @@ Ball::Ball() : edgePoints(8, sf::Vector2f(0.f, 0.f))
 	sf::CircleShape::setFillColor(sf::Color(201, 255, 10));
 	sf::CircleShape::setOrigin(getRadius(), getRadius());
 
-	//++numberOfBalls;
+	
 }
 
 
