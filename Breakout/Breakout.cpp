@@ -158,10 +158,13 @@ int main()
 	startText.setFillColor(sf::Color(193, 129, 112));
 	startText.setOutlineThickness(5);
 	startText.setOutlineColor(sf::Color::Black);
-	startText.setPosition(40, 190);
+	startText.setPosition(40, 170);
 	startText.setString("Use the left and right keys to move the deflector.\n"
 						"Use the up key to release the ball.\n"
 						"To pause and un-pause click the space bar.\n\n"
+
+						"PowerUps: Extra Ball(White), Magnetic(Pink),\n"
+						"Gravity bomb(Black)\n\n"
 
 						"Press 'B' to fire gravity-bombs and 'B' again to detonate.\n"
 						"You can't fire another bomb until the previous one stops\n"
