@@ -1,3 +1,2 @@
 # Breakout
-2D brick breaker game made with C++. Used std and SFML libraries.
-(In Progress)
+2D brick breaker game made with C++. Uses the STD library and SFML library.
