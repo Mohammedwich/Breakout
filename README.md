@@ -10,9 +10,9 @@ Instructions on how to set up SFML are here: https://www.sfml-dev.org/tutorials/
 For those who don't want to download SFML and follow its install tutorial; read below.
 
 
-A commit on Feb 13 2019 added the SFML files into the project folder and adjusted dependency paths with macros rather than a specific path to allow proper pathing on different machines.
+I later added the SFML files into the project folder and adjusted dependency paths with macros rather than a specific path to allow proper pathing on different machines.
 
 
-Set Solution platform to x86
+In visual studio: set Solution platform to x86
 
 The files in Breakout\Dependencies\bin files need to be copied into the debug folder of the project. If they are not then when you attempt to run the program with the debugger, the debugger will give an error saying sfml-system-d-2.dll was not found.
