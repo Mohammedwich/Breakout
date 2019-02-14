@@ -360,6 +360,10 @@ int main()
 		//Moving the ball
 		for (auto ballIter = ballVector.begin(); ballIter != ballVector.end(); ++ballIter)
 		{
+			if (brokenBricks == 50)
+			{
+				gameWon = true;
+			}
 			if ((*ballIter).isDead() == false)
 			{
 				if (!(*ballIter).isStuck() && gameLost == false && gameWon == false && paused == false && startScreen == false)
